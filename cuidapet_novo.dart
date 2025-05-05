@@ -3,6 +3,7 @@ import 'dart:io';
 int quantidadeVendas = 0;
 double valorTotalVendas = 0.0;
 
+//função da area restrita do cuidapet
 void cuidapetrestrito() {
   bool continuarFuncionario = true;
   while (continuarFuncionario) {
@@ -37,7 +38,7 @@ void cuidapetrestrito() {
         quantidadeVendas++;
         valorTotalVendas += valorFinal;
         break;
-
+      //exibe o relatorio de vendas
       case '2':
         print("\n========== RELATÓRIO DE VENDAS ==========");
         print("Quantidade de vendas: $quantidadeVendas");
@@ -58,6 +59,7 @@ void cuidapetrestrito() {
   }
 }
 
+//parte principal e autoatendimento
 void main() {
   while (true) {
     List<String> carrinho = [];
@@ -89,6 +91,7 @@ void main() {
       print("Escolha uma opção: ");
       var opcao = stdin.readLineSync()!;
 
+      //menu
       switch (opcao) {
         case '1':
           print(
