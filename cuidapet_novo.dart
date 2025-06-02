@@ -1,85 +1,135 @@
 import 'dart:io';
 
-int quantidadeVendas = 0;
-double valorTotalVendas = 0.0;
+class VendasManager {
+  int quantidadeVendas = 0;
+  double valorTotalVendas = 0.0;
 
-//função da area restrita do cuidapet
-void cuidapetrestrito() {
-  bool continuarFuncionario = true;
-  while (continuarFuncionario) {
-    print("1 – Registrar atendimento");
-    print("2 – Ver relatório de vendas do dia");
-    print("3 – Sair da área restrita");
+  void registrarVenda(double valor) {
+    quantidadeVendas++;
+    valorTotalVendas += valor;
+  }
 
-    print("Escolha uma opção:");
-    var opcaoFuncionario = stdin.readLineSync();
-
-    switch (opcaoFuncionario) {
-      case '1':
-        print("Insira o nome do cliente atendido:");
-        var nomeClienteAtendido = stdin.readLineSync()!;
-        print("Insira o total que foi gasto:");
-        var totalGasto = double.parse(stdin.readLineSync()!);
-        print("Insira a forma de pagamento: 1 - Dinheiro // 2 - Cartão\n");
-        var met = stdin.readLineSync();
-
-        double valorFinal = totalGasto;
-
-        if (met == '1') {
-          valorFinal *= 0.9;
-          print("O pagamento em dinheiro possui um desconto de 10%.");
-          print(
-            "Total a pagar (com desconto): R\$${valorFinal.toStringAsFixed(2)}",
-          );
-        } else {
-          print("Total a pagar: R\$$valorFinal");
-        }
-
-        quantidadeVendas++;
-        valorTotalVendas += valorFinal;
-        break;
-      //exibe o relatorio de vendas
-      case '2':
-        print("\n========== RELATÓRIO DE VENDAS ==========");
-        print("Quantidade de vendas: $quantidadeVendas");
-        print(
-          "Valor total arrecadado: R\$${valorTotalVendas.toStringAsFixed(2)}",
-        );
-        print("=========================================\n");
-        break;
-
-      case '3':
-        continuarFuncionario = false;
-        print("Saindo da área restrita...\n");
-        break;
-
-      default:
-        print("Opção inválida. Tente novamente.\n");
-    }
+  void exibirRelatorio() {
+    print("\n========== RELATÓRIO DE VENDAS ==========");
+    print("Quantidade de vendas: $quantidadeVendas");
+    print("Valor total arrecadado: R\$${valorTotalVendas.toStringAsFixed(2)}");
+    print("=========================================\n");
   }
 }
 
-//parte principal e autoatendimento
-void main() {
-  while (true) {
-    List<String> carrinho = [];
-    List<double> preco = [];
+class ItemCarrinho {
+  final String descricao;
+  final double preco;
 
-    print("\nBem-vindo ao autoatendimento do Cuidapet!\n");
-    print("Digite seu nome (ou digite '5' para sair): ");
+  ItemCarrinho(this.descricao, this.preco);
+}
+
+class Carrinho {
+  final List<ItemCarrinho> itens = [];
+
+  bool get estaCheio => itens.length >= 3;
+  bool get estaVazio => itens.isEmpty;
+
+  void adicionarItem(String descricao, double preco) {
+    if (estaCheio) {
+      throw Exception("Carrinho cheio (máximo 3 itens)");
+    }
+    itens.add(ItemCarrinho(descricao, preco));
+  }
+
+  double calcularTotal() {
+    return itens.fold(0.0, (total, item) => total + item.preco);
+  }
+
+  void exibirItens() {
+    print("\nCarrinho de Compras:");
+    for (var item in itens) {
+      print("${item.descricao} - R\$${item.preco.toStringAsFixed(2)}");
+    }
+  }
+
+  void limpar() {
+    itens.clear();
+  }
+}
+
+class Autoatendimento {
+  final VendasManager vendasManager;
+  final Carrinho carrinho;
+
+  Autoatendimento(this.vendasManager, this.carrinho);
+
+  void iniciar() {
+    while (true) {
+      print("\nBem-vindo ao autoatendimento do Cuidapet!\n");
+      print("Digite seu nome (ou digite '5' para sair): ");
+      var nomeCliente = stdin.readLineSync()!;
+
+      if (nomeCliente == '5') {
+        print("Obrigado por utilizar nosso PetShop! Até logo!");
+        break;
+      }
+
+      if (nomeCliente == "cuidapetrestrito") {
+        _areaRestrita();
+        continue;
+      }
+
+      _menuCliente(nomeCliente);
+    }
+  }
+
+  void _areaRestrita() {
+    bool continuarFuncionario = true;
+    while (continuarFuncionario) {
+      print("\n1 – Registrar atendimento");
+      print("2 – Ver relatório de vendas do dia");
+      print("3 – Sair da área restrita");
+      print("Escolha uma opção:");
+      
+      var opcao = stdin.readLineSync();
+
+      switch (opcao) {
+        case '1':
+          _registrarAtendimento();
+          break;
+        case '2':
+          vendasManager.exibirRelatorio();
+          break;
+        case '3':
+          continuarFuncionario = false;
+          print("Saindo da área restrita...\n");
+          break;
+        default:
+          print("Opção inválida. Tente novamente.\n");
+      }
+    }
+  }
+
+  void _registrarAtendimento() {
+    print("Insira o nome do cliente atendido:");
     var nomeCliente = stdin.readLineSync()!;
+    print("Insira o total que foi gasto:");
+    var totalGasto = double.parse(stdin.readLineSync()!);
+    print("Insira a forma de pagamento: 1 - Dinheiro // 2 - Cartão\n");
+    var metodo = stdin.readLineSync();
 
-    if (nomeCliente == '5') {
-      print("Obrigado por utilizar nosso PetShop! Até logo!");
-      break;
+    double valorFinal = totalGasto;
+
+    if (metodo == '1') {
+      valorFinal *= 0.9;
+      print("O pagamento em dinheiro possui um desconto de 10%.");
+      print("Total a pagar (com desconto): R\$${valorFinal.toStringAsFixed(2)}");
+    } else {
+      print("Total a pagar: R\$$valorFinal");
     }
 
-    if (nomeCliente == "cuidapetrestrito") {
-      cuidapetrestrito();
-      continue;
-    }
+    vendasManager.registrarVenda(valorFinal);
+  }
 
+  void _menuCliente(String nomeCliente) {
     var continuar = true;
+    carrinho.limpar();
 
     while (continuar) {
       print("---------------------  MENU  --------------------\n");
@@ -91,155 +141,142 @@ void main() {
       print("Escolha uma opção: ");
       var opcao = stdin.readLineSync()!;
 
-      //menu
       switch (opcao) {
         case '1':
-          print(
-            "Código 101 - Ração Royal Canin Indoor Para Cães Adultos De Porte Mini De Ambientes Internos 7,5kg na promoção pelo preço de R\$290,00.",
-          );
-          print(
-            "Código 102 - Ração Royal Canin Sterilised para Gatos Adultos Castrados e com o valor promocional de R\$492,00.",
-          );
-          print(
-            "Código 103 - Bifinho Keldog para Cães Porte Pequeno Sabor Carne e Cereais por R\$23,92.",
-          );
-          print(
-            "Código 104 - Fraldas Descartáveis Super Secão para Cães Machos com 12 Unidades R\$38,61.",
-          );
-          print("Código 8 - Adicionar produto ao carrinho.");
-          print("Código 0 - Voltar): ");
-          var codigo = stdin.readLineSync()!;
-
-          if (codigo == '0') break;
-
-          if (codigo == '8') {
-            print("Escolha o código do produto desejado: ");
-            codigo = stdin.readLineSync()!;
-
-            if (carrinho.length < 3) {
-              switch (codigo) {
-                case '101':
-                  carrinho.add(
-                    "Ração Royal Canin Indoor Para Cães Adultos De Porte Mini De Ambientes Internos 7,5kg",
-                  );
-                  preco.add(290.00);
-                  print("Produto adicionado.");
-                  break;
-                case '102':
-                  carrinho.add(
-                    "Ração Royal Canin Sterilised para Gatos Adultos Castrados",
-                  );
-                  preco.add(492.00);
-                  print("Produto adicionado.");
-                  break;
-                case '103':
-                  carrinho.add(
-                    "Bifinho Keldog para Cães Porte Pequeno Sabor Carne",
-                  );
-                  preco.add(23.92);
-                  print("Produto adicionado.");
-                  break;
-                case '104':
-                  carrinho.add(
-                    "Fraldas Descartáveis Super Secão para Cães Machos",
-                  );
-                  preco.add(38.61);
-                  print("Produto adicionado.");
-                  break;
-                default:
-                  print("Código inválido.");
-              }
-            } else {
-              print("Seu carrinho já está cheio. (Máximo de 3 itens).");
-            }
-            break;
-          }
-        case '2':
-          print("Código 201 - Banho e tosa - R\$55,99.");
-          print("Código 202 - Tosa higienica - R\$12,99.");
-          print("Código 203 - Hidratação dos pelos - R\$20,99.");
-          print("Código 8 - Adicionar produto ao carrinho.");
-          print("Código 0 - Voltar: ");
-          var codigoServico = stdin.readLineSync()!;
-
-          if (codigoServico == '0') break;
-
-          if (codigoServico == '8') {
-            print("Escolha o código do serviço desejado: ");
-            codigoServico = stdin.readLineSync()!;
-
-            if (carrinho.length < 3) {
-              switch (codigoServico) {
-                case '201':
-                  carrinho.add("Banho e Tosa");
-                  preco.add(55.99);
-                  print("Serviço adicionado.");
-                  break;
-                case '202':
-                  carrinho.add("Tosa Higienica");
-                  preco.add(12.99);
-                  print("Serviço adicionado.");
-                  break;
-                case '203':
-                  carrinho.add("Hidratação dos pelos");
-                  preco.add(20.99);
-                  print("Serviço adicionado.");
-                  break;
-                default:
-                  print("Código inválido.");
-              }
-            } else {
-              print("Seu carrinho já está cheio. (Máximo de 3 itens).");
-            }
-            break;
-          }
-        case '3':
-          print("\nCarrinho de Compras:");
-          for (var i = 0; i < carrinho.length; i++) {
-            print("${carrinho[i]} - R\$${preco[i].toStringAsFixed(2)}");
-          }
+          _menuPromocoes();
           break;
-
+        case '2':
+          _menuServicos();
+          break;
+        case '3':
+          carrinho.exibirItens();
+          break;
         case '4':
-          if (carrinho.isEmpty) {
-            print("Seu carrinho está vazio.");
-            break;
-          }
-
-          double totalCompra = preco.reduce((a, b) => a + b);
-          print("\nResumo da Compra:");
-          for (var i = 0; i < carrinho.length; i++) {
-            print("${carrinho[i]} - R\$${preco[i].toStringAsFixed(2)}");
-          }
-
-          print("Total: R\$${totalCompra.toStringAsFixed(2)}");
-
-          print("Escolha a forma de pagamento: 1 - Dinheiro / 2 - Cartão");
-          var formaPagamento = stdin.readLineSync();
-
-          if (formaPagamento == "1") {
-            totalCompra *= 0.9;
-            print("Você recebeu 10% de desconto por pagar em dinheiro!");
-            print("Total a pagar: R\$${totalCompra.toStringAsFixed(2)}");
-          } else {
-            print("Total a pagar: R\$${totalCompra.toStringAsFixed(2)}");
-          }
-
-          quantidadeVendas++;
-          valorTotalVendas += totalCompra;
-
-          print("Obrigado pela compra, ${nomeCliente}!");
-          print("Esperamos vê-lo novamente em breve.");
+          _finalizarCompra(nomeCliente);
           continuar = false;
           break;
-
         case '5':
           print("Obrigado por utilizar nosso PetShop! Até logo!");
           exit(0);
-
         default:
           print("Opção inválida. Tente novamente.");
       }
     }
   }
+
+  void _menuPromocoes() {
+    print("Código 101 - Ração Royal Canin Indoor Para Cães Adultos De Porte Mini De Ambientes Internos 7,5kg na promoção pelo preço de R\$290,00.");
+    print("Código 102 - Ração Royal Canin Sterilised para Gatos Adultos Castrados e com o valor promocional de R\$492,00.");
+    print("Código 103 - Bifinho Keldog para Cães Porte Pequeno Sabor Carne e Cereais por R\$23,92.");
+    print("Código 104 - Fraldas Descartáveis Super Secão para Cães Machos com 12 Unidades R\$38,61.");
+    print("Escolha o código do produto desejado (ou 0 para voltar): ");
+    var codigo = stdin.readLineSync()!;
+
+    if (codigo == '0') return;
+
+    try {
+      if (carrinho.estaCheio) {
+        print("Seu carrinho já está cheio. (Máximo de 3 itens).");
+        return;
+      }
+
+      switch (codigo) {
+        case '101':
+          carrinho.adicionarItem(
+              "Ração Royal Canin Indoor Para Cães Adultos De Porte Mini De Ambientes Internos 7,5kg", 
+              290.00);
+          break;
+        case '102':
+          carrinho.adicionarItem(
+              "Ração Royal Canin Sterilised para Gatos Adultos Castrados", 
+              492.00);
+          break;
+        case '103':
+          carrinho.adicionarItem(
+              "Bifinho Keldog para Cães Porte Pequeno Sabor Carne", 
+              23.92);
+          break;
+        case '104':
+          carrinho.adicionarItem(
+              "Fraldas Descartáveis Super Secão para Cães Machos", 
+              38.61);
+          break;
+        default:
+          print("Código inválido.");
+          return;
+      }
+      print("Produto adicionado.");
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  void _menuServicos() {
+    print("Código 201 - Banho e tosa - R\$55,99.");
+    print("Código 202 - Tosa higienica - R\$12,99.");
+    print("Código 203 - Hidratação dos pelos - R\$20,99.");
+    print("Escolha o código do serviço desejado (ou 0 para voltar): ");
+    var codigo = stdin.readLineSync()!;
+
+    if (codigo == '0') return;
+
+    try {
+      if (carrinho.estaCheio) {
+        print("Seu carrinho já está cheio. (Máximo de 3 itens).");
+        return;
+      }
+
+      switch (codigo) {
+        case '201':
+          carrinho.adicionarItem("Banho e Tosa", 55.99);
+          break;
+        case '202':
+          carrinho.adicionarItem("Tosa Higienica", 12.99);
+          break;
+        case '203':
+          carrinho.adicionarItem("Hidratação dos pelos", 20.99);
+          break;
+        default:
+          print("Código inválido.");
+          return;
+      }
+      print("Serviço adicionado.");
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  void _finalizarCompra(String nomeCliente) {
+    if (carrinho.estaVazio) {
+      print("Seu carrinho está vazio.");
+      return;
+    }
+
+    carrinho.exibirItens();
+    double total = carrinho.calcularTotal();
+    print("Total: R\$${total.toStringAsFixed(2)}");
+
+    print("Escolha a forma de pagamento: 1 - Dinheiro / 2 - Cartão");
+    var formaPagamento = stdin.readLineSync();
+
+    if (formaPagamento == "1") {
+      total *= 0.9;
+      print("Você recebeu 10% de desconto por pagar em dinheiro!");
+      print("Total a pagar: R\$${total.toStringAsFixed(2)}");
+    } else {
+      print("Total a pagar: R\$${total.toStringAsFixed(2)}");
+    }
+
+    vendasManager.registrarVenda(total);
+    print("Obrigado pela compra, $nomeCliente!");
+    print("Esperamos vê-lo novamente em breve.");
+  }
+}
+
+void main() {
+  final vendasManager = VendasManager();
+  final carrinho = Carrinho();
+  final autoatendimento = Autoatendimento(vendasManager, carrinho);
+  
+  autoatendimento.iniciar();
 }
