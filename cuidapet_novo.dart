@@ -1,6 +1,6 @@
 import 'dart:io';
 
-class VendasManager {
+class VendasRelatorio {
   int quantidadeVendas = 0;
   double valorTotalVendas = 0.0;
 
@@ -54,7 +54,7 @@ class Carrinho {
 }
 
 class Autoatendimento {
-  final VendasManager vendasManager;
+  final VendasRelatorio vendasManager;
   final Carrinho carrinho;
 
   Autoatendimento(this.vendasManager, this.carrinho);
@@ -274,7 +274,7 @@ class Autoatendimento {
 }
 
 void main() {
-  final vendasManager = VendasManager();
+  final vendasManager = VendasRelatorio();
   final carrinho = Carrinho();
   final autoatendimento = Autoatendimento(vendasManager, carrinho);
   
